@@ -1,0 +1,175 @@
+PARSER_BEGIN(CAL)
+public class CAL {
+	public static void main(String args[]) 
+	{
+	CAL tokeniser;
+	if (args.length == 0) 
+	{
+		System.out.println("Reading from standard input . . .");
+		tokeniser = new CAL(System.in);
+	} 
+	else if (args.length == 1) 
+	{
+		try 
+		{
+			tokeniser = new CAL(new java.io.FileInputStream(args[0]));
+		}
+		catch (java.io.FileNotFoundException e)
+		{
+			System.err.println("File " + args[0] + " not found.");
+			return;
+		}
+	}
+	else 
+	{
+		System.out.println("CAL:  Usage is one of:");
+		System.out.println("         java CAL < inputfile");
+		System.out.println("OR");
+		System.out.println("         java CAL inputfile");
+		return;
+	}
+}
+}
+PARSER_END(CAL)
+
+TOKEN :
+{
+  < COMMA : "," >
+| < SEMICOL : ";" >
+| < COLON : ":" >
+| < ASSIGN : ":=" >
+| < LBR : "(" >
+| < RBR : ")" >
+| < PLUS : "+" >
+| < MINUS : "-" >
+| < TILDE : "~" >
+| < OR : "|" >
+| < AND : "&" >
+| < EQUALS : "=" >
+| < NOTEQLS : "!=" >
+| < GRTR : ">" >
+| < GRTR_EQLS : ">=" >
+| < LESS: "<" >
+| < LESS_EQLS: "<=" >
+}
+
+TOKEN :
+{
+< NUM : (<DIGIT>)+ >
+| < #DIGIT : ["0" - "9"] >
+| < ID : (<LETTER>)+ >
+| < #LETTER : ["a" - "z", "A" - "Z"] >
+}
+
+TOKEN :
+{
+< INTEGER : "integer" >
+| < BOOLEAN : "boolean" >
+| < VOID : "void" >
+| < VARIABLE : "variable" >
+| < CONSTANT : "constant" >
+| < BEGIN : "begin" >
+| < MAIN : "main" >
+| < IS : "is" >
+| < IF : "if" >
+| < ELSE : "else" >
+| < WHILE : "while" >
+| < RETURN : "return" >
+| < END : "end" >
+}
+
+TOKEN :
+{
+< OTHER : ~[] >
+}
+
+void Prog() : {}
+{
+	Stm() <EOF>
+}
+
+void SimpleStm() : {}
+{
+(Ident() <ASSIGN> Exp())
+| (<LBR> ExpList() <RBR>)
+}
+
+void Stm() : {}
+{
+	(SimpleStm() [<SEMICOL> Stm()] )
+}
+
+void Exp() : {}
+{
+	(SimpleExp() [BinOp() Exp()]  )
+}
+
+void SimpleExp() : {}
+{
+IdExp()
+| NumExp()
+| (<LBR> Stm() <COMMA> Exp() <RBR>)
+}
+
+void Ident() : {}
+{
+	<ID>
+}
+
+void IdExp() : {}
+{
+	<ID>
+}
+
+void NumExp() : {}
+{
+	<NUM>
+}
+
+void ExpList() : {}
+{
+	(Exp() [<COMMA> ExpList()] )
+}
+
+void BinOp() : {}
+{
+<PLUS>
+| <MINUS>
+}
+
+void Type() : {}
+{
+	<INTEGER>
+	|<BOOLEAN>
+	|<VOID>
+}
+
+void Var_decl() : {}
+{
+	(<VARIABLE> Type())
+}
+
+void Const_decl() : {}
+{
+	(<CONSTANT> Type() <ASSIGN> Exp())
+}
+
+void Decl() : {}
+{
+	(Var_decl() | Const_decl())
+}
+
+void Decl_list() : {}
+{
+	(Decl() <SEMICOL> Decl_list() | <VOID>)
+}
+
+void Nemp_paramter_list() : {}
+{
+	(Type() | Type() <COMMA> Nemp_paramter_list())
+}
+
+void Parameter_list() : {}
+{
+	(Nemp_parameter_list() | <VOID>)
+}
